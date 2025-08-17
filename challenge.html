@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>متابعة التحدي</title>
+    <link rel="icon" href="image_be9388.png" type="image/png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            /* وضع الخط هنا */
+            font-family: 'Tajawal', sans-serif;
+            
+            /* وضع الصورة الزرقاء كخلفية */
+            background-image: url('https://images.unsplash.com/photo-1518837695029-45037d0c3629?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            direction: rtl;
+        }
+
+        .container {
+            /* لجعل المحتوى أصغر حجماً وشفافاً */
+            background-color: rgba(255, 255, 255, 0.85);
+            width: 60%;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: right;
+        }
+        
+        .blue-title {
+            color: #007bff; /* لون أزرق */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .clean-day {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .not-clean-day {
+            background-color: #f44336;
+            color: white;
+            cursor: pointer;
+        }
+        .status-cell {
+            cursor: pointer;
+            color: #888;
+        }
+        .active-cell {
+            cursor: pointer;
+            color: black;
+        }
+
+        /* تأثير التحويم على الخانات القابلة للنقر */
+        .clean-day:hover,
+        .not-clean-day:hover,
+        .status-cell:hover,
+        .active-cell:hover {
+            filter: brightness(0.95);
+            transition: filter 0.2s ease-in-out;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #4CAF50;
+            display: none;
+        }
+
+        /* تنسيق دائرة التقدم */
+        .progress-and-start-date {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 50px;
+            flex-direction: row; /* جعل العناصر تظهر أفقياً */
+        }
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .progress-circle {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+        .progress-circle svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .progress-circle .bg {
+            fill: none;
+            stroke: #e6e6e6;
+            stroke-width: 10;
+        }
+        .progress-circle .progress {
+            fill: none;
+            stroke: #4CAF50;
+            stroke-width: 10;
+            transition: stroke-dashoffset 0.5s ease;
+            stroke-linecap: round;
+        }
+        .progress-circle .percentage-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .progress-text {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .start-date-text {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        /* تنسيق علبة الحوار المخصصة */
+        .dialog-box {
+            display: none; /* مخفية بشكل افتراضي */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); /* خلفية سوداء شفافة */
+        }
+        .dialog-content {
+            background-color: #fefefe;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .dialog-content button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        
+        /* تنسيق الخط الغليظ كل 10 أيام */
+        .bold-row td {
+            border-bottom: 2px solid #555;
+            font-weight: bold;
+        }
+        
+        /* تنسيق الأيام القابلة للتحفيز */
+        .day-number-cell {
+            position: relative;
+        }
+
+        .day-number-cell:hover .hover-message {
+            display: block;
+        }
+
+        .hover-message {
+            display: none;
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="blue-title">متابعة الأيام النظيفة</h1>
+        <p>انقر على خانة "الحالة" لتسجيل حالته.</p>
+        <div id="motivational-message" class="message">واصل أنت تستطيع!</div>
+
+        <div class="progress-and-start-date">
+            <div class="progress-container">
+                <div class="progress-circle">
+                    <svg>
+                        <circle class="bg" cx="75" cy="75" r="70"></circle>
+                        <circle class="progress" cx="75" cy="75" r="70"></circle>
+                    </svg>
+                    <div class="percentage-text" id="success-percentage">0%</div>
+                </div>
+                <div class="progress-text" id="clean-days-text">التقدم: 0 يوم نظيف</div>
+            </div>
+            <div class="start-date-text">
+                البداية: الأحد 17 أوت 2025
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>اليوم</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="challenge-table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <div id="changeStatusDialog" class="dialog-box">
+        <div class="dialog-content">
+            <h3>كيف مر اليوم؟</h3>
+            <button onclick="changeDayStatus('clean')">انتصرت</button>
+            <button onclick="changeDayStatus('not-clean')">زللت</button>
+            <button onclick="cancelDayStatus()">إلغاء الحالة</button>
+            <button onclick="closeDialog()">إلغاء</button>
+        </div>
+    </div>
+
+    <script>
+        let currentDayToChange = null;
+
+        function showMessage() {
+            const messageElement = document.getElementById('motivational-message');
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        function openChangeStatusDialog(dateKey) {
+            currentDayToChange = dateKey;
+            const dialog = document.getElementById('changeStatusDialog');
+            dialog.style.display = 'block';
+        }
+
+        function closeDialog() {
+            const dialog = document.getElementById('changeStatusDialog');
+            dialog.style.display = 'none';
+        }
+        
+        function changeDayStatus(status) {
+            if (currentDayToChange) {
+                let days = JSON.parse(localStorage.getItem('challengeDays')) || {};
+                days[currentDayToChange] = status;
+                localStorage.setItem('challengeDays', JSON.stringify(days));
+                closeDialog();
+                createTable();
+            }
+        }
+
+        function cancelDayStatus() {
+            if (currentDayToChange) {
+                let days = JSON.parse(localStorage.getItem('challengeDays')) || {};
+                delete days[currentDayToChange];
+                localStorage.setItem('challengeDays', JSON.stringify(days));
+                closeDialog();
+                createTable();
+            }
+        }
+
+        function calculateSuccessPercentage() {
+            const days = JSON.parse(localStorage.getItem('challengeDays')) || {};
+            let cleanDaysCount = 0;
+            
+            for (const date in days) {
+                if (days[date] === 'clean') {
+                    cleanDaysCount++;
+                }
+            }
+
+            const totalChallengeDays = 90;
+            const percentage = (cleanDaysCount / totalChallengeDays) * 100;
+
+            document.getElementById('success-percentage').textContent = `${percentage.toFixed(2)}%`;
+            document.getElementById('clean-days-text').textContent = `التقدم: ${cleanDaysCount} يوم نظيف`;
+
+            const radius = 70;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (percentage / 100) * circumference;
+            document.querySelector('.progress').style.strokeDashoffset = offset;
+        }
+
+        const motivationalMessages = [
+            "يوم جديد، بداية جديدة. لا تستسلم! ✨",
+            "كل خطوة صغيرة تقربك من هدفك. 👣",
+            "تذكر لماذا بدأت! 👍",
+            "ثابر، النجاح قريب جداً. 🏆",
+            "أنت أقوى مما تتخيل. 💪",
+            "تحدي اليوم هو نجاح الغد. 🌟",
+            "لا يوجد شيء مستحيل. 🕊️",
+            "تقدمك اليوم هو إنجازك الدائم. 💯",
+            "استمر في الإيمان بنفسك. 🙏",
+            "اليوم هو فرصتك للتألق. ☀️",
+            "اجعل هذا اليوم يوماً لا ينسى. 💖",
+            "لا تتوقف حتى تصبح فخوراً. 👏",
+            "التغيير يبدأ بخطوة واحدة. 🚶",
+            "أنت تصنع تاريخك بنفسك. 👑",
+            "صبرك هو مفتاح انتصارك. 🗝️",
+            "تحدي نفسك اليوم، لتهزمها غداً. ⚡",
+            "كل يوم هو فرصة للتحسن. 🌱",
+            "لا تخف من الفشل، بل من عدم المحاولة. 🙅",
+            "أحلامك تستحق كل جهد. ✨",
+            "قوتك تكمن في إرادتك. 💡",
+            "تذكر أنك لست وحدك في هذا. 🫂",
+            "كل يوم نظيف هو فوز كبير. 🎉",
+            "أنت تستطيع تجاوز أي عقبة. ⛰️",
+            "ثق في قدراتك. 🧠",
+            "لا تدع يوماً يضيع منك. ⏳",
+            "المستحيل هو كلمة اخترعها البشر. 🚀",
+            "النجاح هو مجموع الأيام النظيفة. 📊",
+            "أنت مصدر إلهام لنفسك. 🎇",
+            "واجه تحدياتك بشجاعة. 🛡️",
+            "المثابرة تصنع المعجزات. 🙏",
+            "اجعل شغفك أقوى من أعذارك. 🔥",
+            "لا تلتفت للخلف، فالطريق أمامك. 🛤️",
+            "كل يوم هو شهادة على قوتك. 📜",
+            "أنت تقترب أكثر فأكثر. 🎯",
+            "لا تستسلم لأصعب الأيام. 🌪️",
+            "القمة تنتظرك. 🏔️",
+            "اجعل من إرادتك درعاً لك. 🛡️",
+            "استثمر في نفسك. 💰",
+            "أنت لا تفشل، بل تتعلم. 🎓",
+            "نعم، أنت تستطيع! 💪",
+            "تذكر هدفك الأكبر. 🔭",
+            "اليوم هو بداية فصل جديد. 📖",
+            "لا شيء يضاهي شعور النجاح. 🥇",
+            "أنت من يحدد نهايتك. ✍️",
+            "انظر إلى تقدمك، لا إلى أخطائك. 👀",
+            "اللحظة المثالية هي الآن. 🕰️",
+            "كن أقوى من عاداتك. ⛓️",
+            "الإصرار يصنع الفارق. 🥊",
+            "تخيل نفسك وقد وصلت. 🏆",
+            "استمر في الإضاءة. 🌟",
+            "لا تخذل نفسك. 💖",
+            "أنت بطل قصتك. 🦸",
+            "كل يوم هو فرصة أخرى. 🌈",
+            "اجعل من ضعفك قوة. ⚡",
+            "الطريق قد يكون صعباً، لكن النتيجة تستحق. 🏞️",
+            "لا تستسلم أبدًا، النجاح قادم. 🏁",
+            "تذكر كم تقدمت. 📈",
+            "كن أقوى من أي عذر. 🚫",
+            "أنت تمتلك القوة لتغيير حياتك. 🗝️",
+            "كل يوم نظيف يجعلك أقرب. 🗺️",
+            "لا تخف من البدء من جديد. 🔄",
+            "فكر في النهاية السعيدة. 🥳",
+            "إرادتك هي سلاحك السري. 🤫",
+            "اليوم هو هديتك. 🎁",
+            "أنت تستطيع أن تكون أفضل نسخة من نفسك. 💯",
+            "تقدمك هو إنجاز لا يمكن إنكاره. 🎖️",
+            "لا تستسلم للصعوبات. 🚧",
+            "أنت أقرب مما تظن. 📍",
+            "اجعل من هذا اليوم انتصاراً صغيراً. 🎉",
+            "الأيام النظيفة تبني المستقبل. 🏗️",
+            "أنت على الطريق الصحيح. ✅",
+            "تذكر أنك تستحق النجاح. 💎",
+            "كل يوم هو خطوة نحو الحرية. ⛓️",
+            "لا تتردد، قم بالخطوة. 👟",
+            "أنت لا تخذل نفسك. 🫂",
+            "الإصرار هو جسر أحلامك. 🌉",
+            "أنت تستحق كل خير. 💖",
+            "لا تيأس، الأمل موجود دائماً. 🌈",
+            "أنت أقوى من أي عادة سيئة. 🥊",
+            "هذا يومك، اجعله مميزاً. ⭐",
+            "لا يوجد شيء يوقفك سوى نفسك. 🛑",
+            "أنت قادر على تحقيق المستحيل. 🪄",
+            "تذكر لماذا بدأت هذا التحدي. 🤔",
+            "النجاح يبدأ من الداخل. 💖",
+            "الألم لحظي، النجاح دائم. 🏅",
+            "أنت تتحكم في مصيرك. 🧭",
+            "كل يوم هو فرصة جديدة للانتصار. 🥇",
+            "كن فخوراً بنفسك. 👏",
+            "أنت قوي بما يكفي. 💪",
+            "تقدمك اليوم هو إنجاز عظيم. 📈",
+            "لا تستسلم أبدًا. 🚀",
+            "استمر في المضي قدمًا. 🚶",
+            "أنت لست وحدك. 🫂",
+            "أنت في سباق مع نفسك. 🏃",
+            "اليوم هو فرصتك لتثبت لنفسك. 💖",
+            "كل يوم نظيف هو فوز جديد. 🎉",
+            "أنت تقترب من خط النهاية. 🏁"
+        ];
+        
+        const ordinalMessages = [
+            "الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة", "السادسة", "السابعة", "الثامنة", "التاسعة"
+        ];
+
+        function createTable() {
+            const startDate = new Date('2025-08-17T00:00:00');
+            const endDate = new Date('2025-11-14T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const tableBody = document.getElementById('challenge-table-body');
+            tableBody.innerHTML = '';
+            const daysOfWeek = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const months = ['جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+            
+            let currentDate = new Date(startDate);
+            let dayNumber = 1;
+            const savedDays = JSON.parse(localStorage.getItem('challengeDays')) || {};
+
+            while (currentDate <= endDate) {
+                const row = document.createElement('tr');
+                if (dayNumber % 10 === 0) {
+                    row.classList.add('bold-row');
+                }
+                
+                const dayNumberCell = document.createElement('td');
+                dayNumberCell.textContent = dayNumber;
+                dayNumberCell.classList.add('day-number-cell');
+
+                const hoverMessage = document.createElement('span');
+                hoverMessage.classList.add('hover-message');
+                if (dayNumber <= motivationalMessages.length) {
+                    hoverMessage.textContent = motivationalMessages[dayNumber - 1];
+                } else {
+                    hoverMessage.textContent = "واصل، أنت على الطريق الصحيح!";
+                }
+                dayNumberCell.appendChild(hoverMessage);
+
+                const dateCell = document.createElement('td');
+                const dayName = daysOfWeek[currentDate.getDay()];
+                const monthName = months[currentDate.getMonth()];
+                const formattedDate = `${dayName} ${currentDate.getDate()} ${monthName} ${currentDate.getFullYear()}`;
+                dateCell.textContent = formattedDate;
+
+                const statusCell = document.createElement('td');
+                const dateKey = currentDate.toISOString().split('T')[0];
+
+                if (savedDays[dateKey]) {
+                    if (savedDays[dateKey] === 'clean') {
+                         if (dayNumber % 10 === 0) {
+                            const ordinalIndex = (dayNumber / 10) - 1;
+                            if (ordinalIndex < ordinalMessages.length) {
+                                statusCell.textContent = `اكتملت الأيام العشر ${ordinalMessages[ordinalIndex]}`;
+                            } else {
+                                statusCell.textContent = `اكتملت الأيام العشر`; // fallback for days > 90
+                            }
+                            statusCell.className = 'clean-day';
+                        } else {
+                            statusCell.textContent = 'انتصرت';
+                            statusCell.className = 'clean-day';
+                        }
+                    } else { // not-clean
+                        statusCell.textContent = 'زللت';
+                        statusCell.className = 'not-clean-day';
+                    }
+                } else {
+                    statusCell.textContent = '---';
+                    statusCell.classList.add('status-cell');
+                }
+
+                statusCell.onclick = () => openChangeStatusDialog(dateKey);
+
+                row.appendChild(dayNumberCell);
+                row.appendChild(dateCell);
+                row.appendChild(statusCell);
+                tableBody.appendChild(row);
+
+                currentDate.setDate(currentDate.getDate() + 1);
+                dayNumber++;
+            }
+            calculateSuccessPercentage();
+        }
+
+        document.addEventListener('DOMContentLoaded', createTable);
+    </script>
+</body>
+</html>
